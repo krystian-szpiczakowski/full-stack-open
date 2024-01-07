@@ -21,7 +21,6 @@ let notes = [
 const app = express();
 app.use(express.json());
 app.use((req, res, next) => {
-  console.log("Content-Type ziom: ", req.get("Content-Type"));
   next()
 })
 
