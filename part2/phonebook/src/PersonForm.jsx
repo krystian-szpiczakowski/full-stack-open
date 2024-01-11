@@ -21,13 +21,13 @@ const PersonForm = ({ persons, onCreate, onUpdate }) => {
       const confirmUpdateMessage = `${foundPerson.name} is already added to phonebook, replace the old number with a new one?`;
       if (window.confirm(confirmUpdateMessage)) {
         personService
-          .update({ ...foundPerson, phone: newPhone })
+          .update({ ...foundPerson, number: newPhone })
           .then((updatedPerson) => {
             onUpdate(updatedPerson);
           });
       }
     } else {
-      const newPerson = { name: newName, phone: newPhone };
+      const newPerson = { name: newName, number: newPhone };
       personService.create(newPerson).then((personCreated) => {
         onCreate(personCreated);
       });
