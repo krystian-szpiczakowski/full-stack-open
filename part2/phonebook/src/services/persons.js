@@ -7,12 +7,22 @@ const getAll = () => {
 };
 
 const create = (person) => {
-  return axios.post(baseUrl, person).then((response) => response.data);
+  return axios
+    .post(baseUrl, person)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.log(error)
+      const validationErrors = error.response.data.errors
+      if (validationErrors) {
+        throw validationErrors
+      }
+
+      throw [{error: error.response.data.error}]
+    });
 };
 
 const update = async (person) => {
-  const response = await axios
-    .put(`${baseUrl}/${person.id}`, person);
+  const response = await axios.put(`${baseUrl}/${person.id}`, person);
   return response.data;
 };
 

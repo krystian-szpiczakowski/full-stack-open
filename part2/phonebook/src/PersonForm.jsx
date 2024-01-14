@@ -30,6 +30,9 @@ const PersonForm = ({ persons, onCreate, onUpdate }) => {
       const newPerson = { name: newName, number: newPhone };
       personService.create(newPerson).then((personCreated) => {
         onCreate(personCreated);
+      }).catch(error => {
+        console.log("Złapałem w PersonForm", error)
+        onCreate(null, error)
       });
     }
   };

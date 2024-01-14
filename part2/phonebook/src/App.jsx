@@ -18,16 +18,22 @@ const App = () => {
     });
   }, []);
 
-  const onCreate = (createdPerson) => {
-    const updatedPersons = persons.concat(createdPerson);
-    setPersons(updatedPersons);
-    setPersonsDisplayed(updatedPersons);
+  const onCreate = (createdPerson, errors) => {
     setFilter("");
-
-    setNotification({
-      message: `Contact ${createdPerson.name} has been added`,
-      isError: false,
-    });
+    if (errors) {
+      console.log("Błont", errors)
+      const message = errors.map(err => err.error).join("\n")
+      setNotification({message: message, isError: true})
+    } else {
+      const updatedPersons = persons.concat(createdPerson);
+      setPersons(updatedPersons);
+      setPersonsDisplayed(updatedPersons);
+  
+      setNotification({
+        message: `Contact ${createdPerson.name} has been added`,
+        isError: false,
+      });
+    }
 
     setTimeout(() => {
       setNotification(null);
