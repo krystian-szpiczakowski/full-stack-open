@@ -1,8 +1,7 @@
 import express, {json} from "express";
 import cors from 'cors';
 import { Schema, model, connect } from 'mongoose';
-import 'dotenv/config';
-
+import config from "./util/config.js";
 const app = express();
 
 const blogSchema = new Schema({
@@ -14,8 +13,7 @@ const blogSchema = new Schema({
 
 const Blog = model('Blog', blogSchema)
 
-const mongoUrl = process.env.MONGODB_URI;
-connect(mongoUrl);
+connect(config.MONGODB_URI);
 
 app.use(cors())
 app.use(json())
