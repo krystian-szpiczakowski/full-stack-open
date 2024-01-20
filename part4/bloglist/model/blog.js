@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+const {Schema, model} = require('mongoose');
 
 const blogSchema = new Schema({
   title: String,
@@ -7,4 +7,6 @@ const blogSchema = new Schema({
   likes: Number,
 });
 
-export const Blog = model("Blog", blogSchema);
+const Blog = model("Blog", blogSchema);
+
+module.exports = Blog;

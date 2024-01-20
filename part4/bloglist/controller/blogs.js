@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { Blog } from "../model/blog.js";
+const Router = require('express').Router;
+const Blog = require('../model/blog');
 
-export const blogRouter = Router();
+const blogRouter = Router();
 
 blogRouter.get("/", (request, response) => {
   Blog.find({}).then((blogs) => {
@@ -16,3 +16,5 @@ blogRouter.post("/", (request, response) => {
     response.status(201).json(result);
   });
 });
+
+module.exports = blogRouter;
