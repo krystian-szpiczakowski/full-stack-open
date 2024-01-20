@@ -1,39 +1,15 @@
-import express, {json} from "express";
-import cors from 'cors';
-import { Schema, model, connect } from 'mongoose';
 import config from "./util/config.js";
+import cors from "cors";
+import express, { json } from "express";
+import { blogRouter } from "./controller/blogs.js";
+import { connect } from "mongoose";
 const app = express();
-
-const blogSchema = new Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number
-})
-
-const Blog = model('Blog', blogSchema)
 
 connect(config.MONGODB_URI);
 
-app.use(cors())
-app.use(json())
+app.use(cors());
+app.use(json());
 
-app.get('/api/blogs', (request, response) => {
-  Blog
-    .find({})
-    .then(blogs => {
-      response.json(blogs)
-    })
-})
-
-app.post('/api/blogs', (request, response) => {
-  const blog = new Blog(request.body)
-
-  blog
-    .save()
-    .then(result => {
-      response.status(201).json(result)
-    })
-})
+app.use("/api/blogs", blogRouter);
 
 export default app;
