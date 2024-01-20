@@ -1,15 +1,7 @@
 import { Router } from "express";
-import { Schema, model } from 'mongoose';
+import { Blog } from "../model/blog.js";
 
 export const blogRouter = Router();
-const blogSchema = new Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number,
-});
-
-const Blog = model("Blog", blogSchema);
 
 blogRouter.get("/", (request, response) => {
   Blog.find({}).then((blogs) => {
