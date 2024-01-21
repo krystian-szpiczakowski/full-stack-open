@@ -14,4 +14,14 @@ const totalLikes = (blogs) => {
   return sumOfLikes;
 }
 
-module.exports = { dummy, totalLikes };
+const favoriteBlog = (blogs) => {
+  if (!blogs) {
+    return undefined;
+  }
+
+  const maxFinder = (max, currentItem) => currentItem.likes > max.likes ? currentItem : max
+
+  return blogs.reduce(maxFinder, blogs[0]);
+}
+
+module.exports = { dummy, totalLikes, favoriteBlog };
