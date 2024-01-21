@@ -54,12 +54,10 @@ describe("Find favorite blog with most likes", () => {
     const singleBlog = {
       author: "Christiansen",
       title: "It's a perfect day for programming",
-      likes: 21
-    }
+      likes: 21,
+    };
 
-    const blogs = [
-      singleBlog
-    ];
+    const blogs = [singleBlog];
 
     expect(listHelper.favoriteBlog(blogs)).toEqual(singleBlog);
   });
@@ -68,25 +66,24 @@ describe("Find favorite blog with most likes", () => {
     const expectedBlog = {
       author: "Christiansen",
       title: "Snowy Sunday",
-      likes: 33
-    }
+      likes: 33,
+    };
 
     const blogs = [
       {
         author: "Christiansen",
         title: "It's a perfect day for programming",
-        likes: 21
+        likes: 21,
       },
       expectedBlog,
       {
         author: "Wifey",
         title: "Dinner time",
-        likes: 14
-      }
+        likes: 14,
+      },
     ];
 
     const actualBlog = listHelper.favoriteBlog(blogs);
-    console.log(actualBlog)
     expect(actualBlog).toEqual(expectedBlog);
   });
 
@@ -94,25 +91,77 @@ describe("Find favorite blog with most likes", () => {
     const expectedBlog = {
       author: "Christiansen",
       title: "Snowy Sunday",
-      likes: 33
-    }
+      likes: 33,
+    };
 
     const blogs = [
       {
         author: "Christiansen",
         title: "It's a perfect day for programming",
-        likes: 21
+        likes: 21,
       },
       expectedBlog,
       {
         author: "Wifey",
         title: "Dinner time",
-        likes: 33
-      }
+        likes: 33,
+      },
     ];
 
     const actualBlog = listHelper.favoriteBlog(blogs);
-    console.log(actualBlog)
     expect(actualBlog).toEqual(expectedBlog);
+  });
+});
+
+describe("Blogger with most blogs", () => {
+  test("When no blogs defined, no top blogger", () => {
+    expect(listHelper.mostBlogs()).toEqual(undefined);
+  })
+
+  test("When empty list of blogs, no top blogger", () => {
+    expect(listHelper.mostBlogs([])).toEqual(undefined);
+  })
+
+  test("When several bloggers, get one with most blogs", () => {
+    const blogs = [
+      {
+        author: "Christiansen",
+        title: "It's a perfect day for programming",
+        likes: 21,
+      },
+      {
+        author: "Christiansen",
+        title: "Snowy Sunday",
+        likes: 33,
+      },
+      {
+        author: "Wifey",
+        title: "Breakfast time",
+        likes: 14,
+      },
+      {
+        author: "Wifey",
+        title: "Lunch time",
+        likes: 14,
+      },
+      {
+        author: "Wifey",
+        title: "Dinner time",
+        likes: 14,
+      },
+      {
+        author: "Son",
+        title: "Lego playtime",
+        likes: 100
+      }
+    ];
+
+    const expectedTopBlogger = {
+      author: "Wifey",
+      blogs: 3
+    }
+
+    const topBlogger = listHelper.mostBlogs(blogs);
+    expect(topBlogger).toEqual(expectedTopBlogger);
   });
 });
