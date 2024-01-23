@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 const dummy = (blogs) => {
   return 1;
 };
@@ -29,10 +31,9 @@ const mostBlogs = (blogs) => {
   }
 
   if (blogs.length === 0) {
-    return undefined
+    return undefined;
   }
 
-  var _ = require("lodash");
   const blogsByAuthor = _.groupBy(blogs, "author");
 
   const authors = Object.keys(blogsByAuthor);
@@ -48,4 +49,31 @@ const mostBlogs = (blogs) => {
   };
 };
 
-module.exports = { dummy, totalLikes, favoriteBlog, mostBlogs };
+const mostLikes = (blogs) => {
+  if (!blogs || blogs.length === 0) {
+    return undefined;
+  }
+
+  const blogsByAuthor = _.groupBy(blogs, "author");
+  const authors = Object.keys(blogsByAuthor);
+
+  const likesByAuthor = authors.map((author) => {
+    const blogsOfSingleAuthor = blogsByAuthor[author];
+    const totalLikesForAuthor = blogsOfSingleAuthor
+      .map((blog) => blog.likes)
+      .reduce((sum, likes) => sum + likes, 0);
+
+    return {
+      author: author,
+      likes: totalLikesForAuthor,
+    };
+  });
+
+  return likesByAuthor.reduce(
+    (currentMax, authorLikes) =>
+      authorLikes.likes > currentMax.likes ? authorLikes : currentMax,
+    likesByAuthor[0]
+  );
+};
+
+module.exports = { dummy, totalLikes, favoriteBlog, mostBlogs, mostLikes };

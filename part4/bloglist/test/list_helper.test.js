@@ -1,3 +1,4 @@
+const { join } = require("lodash");
 const listHelper = require("../util/list_helper");
 
 test("Dummy returns one", () => {
@@ -164,4 +165,50 @@ describe("Blogger with most blogs", () => {
     const topBlogger = listHelper.mostBlogs(blogs);
     expect(topBlogger).toEqual(expectedTopBlogger);
   });
+
+  describe("Blogger with most likes", () => {
+    test("When no blogs, get no likes", () => {
+      const mostLikedAuthor = listHelper.mostLikes();
+      expect(mostLikedAuthor).toBe(undefined);
+    })
+
+    test("When empty blogs, get no likes", () => {
+      const blogs = []
+      const mostLikedAuthor = listHelper.mostLikes(blogs);
+      expect(mostLikedAuthor).toBe(undefined);
+    })
+
+    test("When multiple authors with multiple blogs, get author with most likes", () => {
+      const blogs = [
+        {
+          author: "Somebody",
+          title: "How to lorem ipsum very much",
+          likes: 20
+        },
+        {
+          author: "Wifey",
+          title: "How to be a software engineer",
+          likes: 10
+        },
+        {
+          author: "Wifey",
+          title: "How to be anyone",
+          likes: 90
+        },
+        {
+          author: "Somebody",
+          title: "How to lorem ipsum",
+          likes: 6
+        }
+      ]
+
+      const expectedMostLikedAuthor = {
+        author: "Wifey",
+        likes: 100
+      }
+
+      const mostLikedAuthor = listHelper.mostLikes(blogs);
+      expect(mostLikedAuthor).toEqual(expectedMostLikedAuthor)
+    })
+  })
 });
