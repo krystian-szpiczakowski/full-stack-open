@@ -1,4 +1,3 @@
-const { join } = require("lodash");
 const listHelper = require("../util/list_helper");
 
 test("Dummy returns one", () => {
@@ -117,11 +116,11 @@ describe("Find favorite blog with most likes", () => {
 describe("Blogger with most blogs", () => {
   test("When no blogs defined, no top blogger", () => {
     expect(listHelper.mostBlogs()).toEqual(undefined);
-  })
+  });
 
   test("When empty list of blogs, no top blogger", () => {
     expect(listHelper.mostBlogs([])).toEqual(undefined);
-  })
+  });
 
   test("When several bloggers, get one with most blogs", () => {
     const blogs = [
@@ -153,14 +152,14 @@ describe("Blogger with most blogs", () => {
       {
         author: "Son",
         title: "Lego playtime",
-        likes: 100
-      }
+        likes: 100,
+      },
     ];
 
     const expectedTopBlogger = {
       author: "Wifey",
-      blogs: 3
-    }
+      blogs: 3,
+    };
 
     const topBlogger = listHelper.mostBlogs(blogs);
     expect(topBlogger).toEqual(expectedTopBlogger);
@@ -170,45 +169,45 @@ describe("Blogger with most blogs", () => {
     test("When no blogs, get no likes", () => {
       const mostLikedAuthor = listHelper.mostLikes();
       expect(mostLikedAuthor).toBe(undefined);
-    })
+    });
 
     test("When empty blogs, get no likes", () => {
-      const blogs = []
+      const blogs = [];
       const mostLikedAuthor = listHelper.mostLikes(blogs);
       expect(mostLikedAuthor).toBe(undefined);
-    })
+    });
 
     test("When multiple authors with multiple blogs, get author with most likes", () => {
       const blogs = [
         {
           author: "Somebody",
           title: "How to lorem ipsum very much",
-          likes: 20
+          likes: 20,
         },
         {
           author: "Wifey",
           title: "How to be a software engineer",
-          likes: 10
+          likes: 10,
         },
         {
           author: "Wifey",
           title: "How to be anyone",
-          likes: 90
+          likes: 90,
         },
         {
           author: "Somebody",
           title: "How to lorem ipsum",
-          likes: 6
-        }
-      ]
+          likes: 6,
+        },
+      ];
 
       const expectedMostLikedAuthor = {
         author: "Wifey",
-        likes: 100
-      }
+        likes: 100,
+      };
 
       const mostLikedAuthor = listHelper.mostLikes(blogs);
-      expect(mostLikedAuthor).toEqual(expectedMostLikedAuthor)
-    })
-  })
+      expect(mostLikedAuthor).toEqual(expectedMostLikedAuthor);
+    });
+  });
 });
