@@ -72,6 +72,46 @@ describe("POST /api/users", () => {
     expect(userFromDb.username).toBe("kaka1305");
     expect(userFromDb.password).not.toBe("ButterChicken123");
   });
+
+  test.each([undefined, null, "", "a", "hi"])(
+    "Cannot create a user with username '%s' (shorter than 3 characters)",
+    async (currentUsername) => {
+      const newUser = {
+        name: "Kristiansen",
+        username: currentUsername,
+        password: "difficultPassword123",
+      };
+
+      const response = await api
+        .post("/api/users")
+        .send(newUser)
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+      const error = response.body.errors[0];
+      expect(error.message).toBe("Username must be minimum 3 characters long");
+    }
+  );
+  
+  test.each([undefined, null, "", "a", "hi"])(
+    "Cannot create a user with password '%s' (shorter than 3 characters)",
+    async (currentPassword) => {
+      const newUser = {
+        name: "Kristiansen",
+        username: "howlingowl",
+        password: currentPassword,
+      };
+  
+      const response = await api
+        .post("/api/users")
+        .send(newUser)
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+  
+      const error = response.body.errors[0];
+      expect(error.message).toBe("Password must be minimum 3 characters long");
+    }
+  );
 });
 
 describe("GET /api/users/", () => {
@@ -106,7 +146,7 @@ describe("GET /api/users/", () => {
   });
 
   test("Get 404 if user with given ID does not exist", async () => {
-    const nonExistingId = "nonExistingID"
+    const nonExistingId = "nonExistingID";
     const userResponse = await api.get(`/api/users/${nonExistingId}`);
 
     const error = userResponse.body.error;

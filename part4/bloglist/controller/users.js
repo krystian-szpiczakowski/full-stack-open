@@ -2,24 +2,32 @@ const { Router } = require("express");
 const bcrypt = require("bcrypt");
 const User = require("../model/user");
 
+const validate = require("./validation/user_validation");
+
 const userRouter = Router();
 
 userRouter.post("/", async (request, response) => {
   const { name, username, password } = request.body;
+
+  var user = { name, username, password };
+  const errors = validate(user);
+  if (errors.length > 0) {
+    return response.status(400).json({
+      errors
+    });
+  }
+
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   const userToSave = new User({
-    name: name,
-    username: username,
+    ...user,
     password: hashedPassword,
   });
 
-  const resp = await userToSave.save();
-  console.log("Mongo resp", resp);
+  await userToSave.save();
 
-  const savedUser = { name, username };
-  response.status(201).json(savedUser);
+  response.status(201).json({ name, username });
 });
 
 userRouter.get("/", async (request, response) => {
