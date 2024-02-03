@@ -6,7 +6,7 @@ const validate = require("./validation/user_validation");
 
 const userRouter = Router();
 
-userRouter.post("/", async (request, response) => {
+userRouter.post("/", async (request, response, next) => {
   const { name, username, password } = request.body;
 
   var user = { name, username, password };
@@ -25,9 +25,12 @@ userRouter.post("/", async (request, response) => {
     password: hashedPassword,
   });
 
-  await userToSave.save();
-
-  response.status(201).json({ name, username });
+  try {
+    await userToSave.save();
+    response.status(201).json({ name, username });
+  } catch (error) {
+    next(error)
+  }
 });
 
 userRouter.get("/", async (request, response) => {
@@ -52,5 +55,23 @@ userRouter.get("/:id", async (request, response) => {
     error: `User with id ${id} not found`,
   });
 });
+
+
+userRouter.use((err, req, res, next) => {
+  console.log(JSON.stringify(err, null, "  "))
+  if (err.name === "ValidationError") {
+    res.status(400).json(err);
+  } else {
+    next(err)
+  }
+})
+
+userRouter.use((err, req, res) => {
+  res.status(err.status || 500).json({
+    error: {
+      message: err.message || 'Internal Server Error',
+    },
+  });
+})
 
 module.exports = userRouter;

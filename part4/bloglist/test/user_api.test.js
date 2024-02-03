@@ -92,7 +92,7 @@ describe("POST /api/users", () => {
       expect(error.message).toBe("Username must be minimum 3 characters long");
     }
   );
-  
+
   test.each([undefined, null, "", "a", "hi"])(
     "Cannot create a user with password '%s' (shorter than 3 characters)",
     async (currentPassword) => {
@@ -101,17 +101,32 @@ describe("POST /api/users", () => {
         username: "howlingowl",
         password: currentPassword,
       };
-  
+
       const response = await api
         .post("/api/users")
         .send(newUser)
         .expect(400)
         .expect("Content-Type", /application\/json/);
-  
+
       const error = response.body.errors[0];
       expect(error.message).toBe("Password must be minimum 3 characters long");
     }
   );
+
+  test("Username must be unique", async () => {
+    const newUser = {
+      name: "Kristiansen",
+      username: "howlingowl",
+      password: "lol",
+    };
+
+    await api.post("/api/users").send(newUser).expect(201);
+    const response = await api.post("/api/users").send(newUser).expect(400);
+
+    const errors = response.body.errors;
+    expect(errors.username).toBeDefined();
+    expect(errors.username.message).toContain("to be unique");
+  });
 });
 
 describe("GET /api/users/", () => {

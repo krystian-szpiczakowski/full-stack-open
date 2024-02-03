@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const supertest = require("supertest");
-const logger = require("../util/logger");
 const app = require("../app");
 
 const api = supertest(app);
@@ -20,13 +19,11 @@ const initialBlogs = [
 ];
 
 beforeEach(async () => {
-  logger.info("--- Executing beforeEach");
   await Blog.deleteMany({});
   await Blog.insertMany(initialBlogs);
 });
 
 afterAll(async () => {
-  logger.info("--- Closing MongoDB connection");
   await mongoose.connection.close();
 });
 
