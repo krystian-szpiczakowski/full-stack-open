@@ -4,6 +4,7 @@ const app = require("../app");
 
 const api = supertest(app);
 const Blog = require("../model/blog");
+const User = require("../model/user");
 
 const initialBlogs = [
   {
@@ -21,6 +22,8 @@ const initialBlogs = [
 beforeEach(async () => {
   await Blog.deleteMany({});
   await Blog.insertMany(initialBlogs);
+
+  await User.deleteMany({});
 });
 
 afterAll(async () => {
@@ -141,15 +144,13 @@ test("can update amount of likes for single blog", async () => {
     likes: 5,
   };
 
-  const postResponse = await api
-    .post("/api/blogs")
-    .send(newBlog)
+  const postResponse = await api.post("/api/blogs").send(newBlog);
 
   const savedBlog = postResponse.body;
 
   const blogToUpdate = {
-    likes: 8
-  }
+    likes: 8,
+  };
 
   await api
     .put(`/api/blogs/${savedBlog.id}`)
@@ -158,7 +159,32 @@ test("can update amount of likes for single blog", async () => {
     .expect("Content-Type", /application\/json/);
 
   const getResponse = await api.get("/api/blogs");
-  const updatedBlog = getResponse.body.find(blog => blog.id === savedBlog.id);
+  const updatedBlog = getResponse.body.find((blog) => blog.id === savedBlog.id);
 
   expect(updatedBlog.likes).toBe(8);
+});
+
+test("Blog is assigned to any user", async () => {
+  const newBlog = {
+    author: "Boombap",
+    title: "Put your hands up in the air",
+  };
+
+  const newUser = {
+    name: "Someone",
+    username: "fisherman",
+    password: "onetwothree",
+  };
+
+  await api.post("/api/users").send(newUser);
+
+  const postResponse = await api.post("/api/blogs").send(newBlog).expect(201);
+  const blogId = postResponse.body.id;
+
+  const getResponse = await api.get("/api/blogs");
+  const blogs = getResponse.body;
+
+  const foundBlog = blogs.find((blog) => blog.id === blogId);
+  expect(foundBlog.user.username).toBe("fisherman");
+  expect(foundBlog.user.name).toBe("Someone");
 });

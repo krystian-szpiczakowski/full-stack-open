@@ -1,25 +1,33 @@
 const Router = require("express").Router;
 const Blog = require("../model/blog");
+const User = require("../model/user");
 
 const blogRouter = Router();
 
 blogRouter.get("/", async (request, response) => {
-  const blogs = await Blog.find({});
+  const blogs = await Blog.find({}).populate("user");
   response.json(blogs);
 });
 
 blogRouter.post("/", async (request, response) => {
   const blog = new Blog(request.body);
-
+  
   if (!blog.title) {
     return response.status(400).send({ error: "title is required" });
   }
-
+  
   if (!blog.likes) {
     blog.likes = 0;
   }
-
+  
+  const user = await User.findOne(); 
+  blog.user = user?.id;
   const savedBlog = await blog.save();
+  
+  if (user) {
+    user.blogs = user.blogs.concat(savedBlog.id);
+  }
+
   response.status(201).json(savedBlog);
 });
 

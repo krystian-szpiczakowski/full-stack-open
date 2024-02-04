@@ -1,4 +1,4 @@
-const { Schema, model } = require("mongoose");
+const { Schema, model, default: mongoose } = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 
 const userSchema = new Schema({
@@ -9,6 +9,7 @@ const userSchema = new Schema({
   },
   name: String,
   password: String,
+  blogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Blog" }],
 });
 
 userSchema.set("toJSON", {
