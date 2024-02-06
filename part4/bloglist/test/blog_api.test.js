@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 const supertest = require("supertest");
 const app = require("../app");
-
 const api = supertest(app);
+
 const Blog = require("../model/blog");
 const User = require("../model/user");
+
+const userHelper = require("./user_helper");
 
 const initialBlogs = [
   {
@@ -55,15 +57,20 @@ test("a specific blog is within the returned blogs", async () => {
   expect(titles).toContain("HTML is easy");
 });
 
-test("a valid blog can be added", async () => {
+test("only authenticated user can add a blog post", async () => {
   const newBlog = {
     author: "Someone else",
     title: "async/await simplifies making async calls",
     likes: 5,
   };
 
+  await userHelper.createUser("Some Body", "somebodi", "cheese123");
+  await userHelper.createUser("Some One-Else", "somebodi_else", "cheese123");
+
+  const token = await userHelper.generateToken("somebodi_else", "cheese123");
   const postResponse = await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect("Content-Type", /application\/json/);
@@ -76,6 +83,13 @@ test("a valid blog can be added", async () => {
   expect(savedBlog.author).toBe("Someone else");
   expect(savedBlog.title).toBe("async/await simplifies making async calls");
   expect(savedBlog.likes).toBe(5);
+
+  expect(savedBlog.user.name).toBe("Some One-Else");
+  expect(savedBlog.user.username).toBe("somebodi_else");
+})
+
+test("not authenticated user cannot add a blog post", async () => {
+  
 });
 
 test("a new blog has likes set to 0 if missing", async () => {
@@ -84,8 +98,11 @@ test("a new blog has likes set to 0 if missing", async () => {
     title: "async/await simplifies making async calls",
   };
 
+  await userHelper.createUser("justuser", "justuser", "justpassword");
+  const token = await userHelper.generateToken("justuser", "justpassword");
   const postResponse = await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect("Content-Type", /application\/json/);
@@ -97,28 +114,16 @@ test("a new blog has likes set to 0 if missing", async () => {
   expect(savedBlog.likes).toBe(0);
 });
 
-test("a new blog has likes set to 0 if missing", async () => {
-  const newBlog = {
-    author: "Someone else",
-    title: "async/await simplifies making async calls",
-  };
-
-  const response = await api
-    .post("/api/blogs")
-    .send(newBlog)
-    .expect(201)
-    .expect("Content-Type", /application\/json/);
-
-  expect(response.body.likes).toBe(0);
-});
-
 test("a new blog requires title", async () => {
   const newBlog = {
     author: "Someone else",
   };
 
+  await userHelper.createUser("Some One-Else", "somebodi_else", "cheese123");
+  const token = await userHelper.generateToken("somebodi_else", "cheese123");
   const response = await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
     .send(newBlog)
     .expect(400)
     .expect("Content-Type", /application\/json/);
@@ -144,10 +149,14 @@ test("can update amount of likes for single blog", async () => {
     likes: 5,
   };
 
-  const postResponse = await api.post("/api/blogs").send(newBlog);
+  await userHelper.createUser("Some Body", "somebodi", "cheese123");
+  const token = await userHelper.generateToken("somebodi", "cheese123");
+  const postResponse = await api
+    .post("/api/blogs").send(newBlog)
+    .set("Authorization", `Bearer ${token}`)
+    .expect(201);
 
   const savedBlog = postResponse.body;
-
   const blogToUpdate = {
     likes: 8,
   };
@@ -162,29 +171,4 @@ test("can update amount of likes for single blog", async () => {
   const updatedBlog = getResponse.body.find((blog) => blog.id === savedBlog.id);
 
   expect(updatedBlog.likes).toBe(8);
-});
-
-test("Blog is assigned to any user", async () => {
-  const newBlog = {
-    author: "Boombap",
-    title: "Put your hands up in the air",
-  };
-
-  const newUser = {
-    name: "Someone",
-    username: "fisherman",
-    password: "onetwothree",
-  };
-
-  await api.post("/api/users").send(newUser);
-
-  const postResponse = await api.post("/api/blogs").send(newBlog).expect(201);
-  const blogId = postResponse.body.id;
-
-  const getResponse = await api.get("/api/blogs");
-  const blogs = getResponse.body;
-
-  const foundBlog = blogs.find((blog) => blog.id === blogId);
-  expect(foundBlog.user.username).toBe("fisherman");
-  expect(foundBlog.user.name).toBe("Someone");
 });

@@ -7,8 +7,8 @@ const blogRouter = require("./controller/blogs.js");
 const userRouter = require("./controller/users.js");
 const mongoose = require("mongoose");
 
-const app = express();
 mongoose.connect(config.MONGODB_URI);
+const app = express();
 
 app.use(cors());
 app.use(express.json());

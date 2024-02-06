@@ -8,7 +8,6 @@ const userRouter = Router();
 
 userRouter.post("/", async (request, response, next) => {
   const { name, username, password } = request.body;
-
   var user = { name, username, password };
   const errors = validate(user);
   if (errors.length > 0) {
@@ -58,7 +57,6 @@ userRouter.get("/:id", async (request, response) => {
 
 
 userRouter.use((err, req, res, next) => {
-  console.log(JSON.stringify(err, null, "  "))
   if (err.name === "ValidationError") {
     res.status(400).json(err);
   } else {
