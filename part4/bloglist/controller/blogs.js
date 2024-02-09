@@ -2,6 +2,8 @@ const Router = require("express").Router;
 const Blog = require("../model/blog");
 const User = require("../model/user");
 
+const middleware = require("../middleware/token_extractor");
+
 const jwt = require("jsonwebtoken");
 
 const blogRouter = Router();
@@ -11,12 +13,11 @@ blogRouter.get("/", async (request, response) => {
   response.json(blogs);
 });
 
-blogRouter.post("/", async (request, response, next) => {
+blogRouter.post("/", middleware.extractToken,  async (request, response, next) => {
   let decodedToken;
 
   try {
-    const extractedToken = getTokenFrom(request);
-    decodedToken = jwt.verify(extractedToken, process.env.JWT_SECRET);
+    decodedToken = jwt.verify(request.token, process.env.JWT_SECRET);
     if (!decodedToken.id) {
       return response.status(401).json({error: "token invalid"});
     }
@@ -47,14 +48,6 @@ blogRouter.post("/", async (request, response, next) => {
 
   return response.status(401).json({error: "User does not exist"});
 });
-
-const getTokenFrom = (request) => {
-  const authorization = request.get('authorization')
-  if (authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '')
-  }
-  return null
-}
 
 blogRouter.put("/:id", async (request, response) => {
   const id = request.params.id;
