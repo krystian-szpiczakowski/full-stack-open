@@ -86,10 +86,26 @@ test("only authenticated user can add a blog post", async () => {
 
   expect(savedBlog.user.name).toBe("Some One-Else");
   expect(savedBlog.user.username).toBe("somebodi_else");
-})
+});
 
 test("not authenticated user cannot add a blog post", async () => {
-  
+  const newBlog = {
+    author: "Someone else",
+    title: "async/await simplifies making async calls",
+    likes: 5,
+  };
+
+  await userHelper.createUser("Some Body", "somebodi", "cheese123");
+  const token = await userHelper.generateToken("somebodi_else", "cheese321");
+  const postResponse = await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
+    .send(newBlog)
+    .expect(401)
+    .expect("Content-Type", /application\/json/);
+
+  const fetchedBlogs = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogs).toHaveLength(initialBlogs.length);
 });
 
 test("a new blog has likes set to 0 if missing", async () => {
@@ -131,15 +147,140 @@ test("a new blog requires title", async () => {
   expect(response.body.error).toBe("title is required");
 });
 
-test("can delete a single blog", async () => {
-  const getResponse = await api.get("/api/blogs");
-  const blogToDelete = getResponse.body[0];
-  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+test("authenticated user can delete their own blog", async () => {
+  const newBlog = {
+    author: "It's me",
+    title: "Authentication is not that hard",
+    likes: 5,
+  };
 
-  const getResponseAfterDelete = await api.get("/api/blogs");
-  const blogs = getResponseAfterDelete.body;
-  const deletedBlog = blogs.find((blog) => blog.id === blogToDelete.id);
+  await userHelper.createUser("Test User", "test_user_1", "cheese123");
+  const postToken = await userHelper.generateToken("test_user_1", "cheese123");
+
+  const postResponse = await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${postToken}`)
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const fetchedBlogs = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogs).toHaveLength(initialBlogs.length + 1);
+
+  const deleteToken = await userHelper.generateToken("test_user_1", "cheese123");
+  const blogId = postResponse.body.id;
+  await api
+    .delete(`/api/blogs/${blogId}`)
+    .set("Authorization", `Bearer ${deleteToken}`)
+    .expect(204);
+
+  const fetchedBlogsAfterDelete = (await api.get("/api/blogs")).body;
+  const deletedBlog = fetchedBlogsAfterDelete.find(blog => blog.id === blogId);
   expect(deletedBlog).not.toBeDefined();
+});
+
+test("unauthenticated user cannot delete someone else's blog", async () => {
+  const newBlog = {
+    author: "It's me",
+    title: "Authentication is not that hard",
+    likes: 5,
+  };
+
+  await userHelper.createUser("Test User", "test_user_1", "cheese123");
+  await userHelper.createUser("Test User", "test_user_2", "cheese123");
+  const postToken = await userHelper.generateToken("test_user_1", "cheese123");
+
+  const postResponse = await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${postToken}`)
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const fetchedBlogs = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogs).toHaveLength(initialBlogs.length + 1);
+
+  const tokenForAnotherUser = await userHelper.generateToken("test_user_2", "cheese123");
+  const blogId = postResponse.body.id;
+  const deleteResponse = await api
+    .delete(`/api/blogs/${blogId}`)
+    .set("Authorization", `Bearer ${tokenForAnotherUser}`)
+    .expect(403);
+
+  const deleteError = deleteResponse.body.error;
+  expect(deleteError).toBe("user has no permissions to perform this action");
+
+  const fetchedBlogsAfterUnsuccesfulDelete = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogsAfterUnsuccesfulDelete).toHaveLength(
+    initialBlogs.length + 1
+  );
+});
+
+test("not authenticated user cannot delete their blog", async () => {
+  const newBlog = {
+    author: "It's me",
+    title: "Authentication is not that hard",
+    likes: 5,
+  };
+
+  await userHelper.createUser("Test User", "test_user", "cheese123");
+  const postToken = await userHelper.generateToken("test_user", "cheese123");
+
+  const postResponse = await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${postToken}`)
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const fetchedBlogs = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogs).toHaveLength(initialBlogs.length + 1);
+
+  const deleteToken = userHelper.generateToken("test_user", "invalidPassword");
+  const blogId = postResponse.body.id;
+  await api
+    .delete(`/api/blogs/${blogId}`)
+    .set("Authorization", `Bearer ${deleteToken}`)
+    .expect(401);
+
+  const fetchedBlogsAfterUnsuccesfulDelete = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogsAfterUnsuccesfulDelete).toHaveLength(
+    initialBlogs.length + 1
+  );
+});
+
+test("not authenticated user cannot delete someone else's blog", async () => {
+  const newBlog = {
+    author: "It's me",
+    title: "Authentication is not that hard",
+    likes: 5,
+  };
+
+  await userHelper.createUser("Test User", "test_user_1", "cheese123");
+  await userHelper.createUser("Test User", "test_user_2", "cheese123");
+  const postToken = await userHelper.generateToken("test_user_1", "cheese123");
+
+  const postResponse = await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${postToken}`)
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const fetchedBlogs = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogs).toHaveLength(initialBlogs.length + 1);
+
+  const deleteToken = userHelper.generateToken("test_user_2", "invalidPassword");
+  const blogId = postResponse.body.id;
+  await api
+    .delete(`/api/blogs/${blogId}`)
+    .set("Authorization", `Bearer ${deleteToken}`)
+    .expect(401);
+
+  const fetchedBlogsAfterUnsuccesfulDelete = (await api.get("/api/blogs")).body;
+  expect(fetchedBlogsAfterUnsuccesfulDelete).toHaveLength(
+    initialBlogs.length + 1
+  );
 });
 
 test("can update amount of likes for single blog", async () => {
@@ -152,7 +293,8 @@ test("can update amount of likes for single blog", async () => {
   await userHelper.createUser("Some Body", "somebodi", "cheese123");
   const token = await userHelper.generateToken("somebodi", "cheese123");
   const postResponse = await api
-    .post("/api/blogs").send(newBlog)
+    .post("/api/blogs")
+    .send(newBlog)
     .set("Authorization", `Bearer ${token}`)
     .expect(201);
 
