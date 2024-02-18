@@ -13,18 +13,7 @@ blogRouter.get("/", async (request, response) => {
   response.json(blogs);
 });
 
-blogRouter.post("/", middleware.extractToken,  async (request, response, next) => {
-  let decodedToken;
-
-  try {
-    decodedToken = jwt.verify(request.token, process.env.JWT_SECRET);
-    if (!decodedToken.id) {
-      return response.status(401).json({error: "token invalid"});
-    }
-  } catch (error) {
-    return next(error)
-  }
-
+blogRouter.post("/", middleware.extractUser,  async (request, response, next) => {
   const blog = new Blog(request.body);
   
   if (!blog.title) {
@@ -35,7 +24,7 @@ blogRouter.post("/", middleware.extractToken,  async (request, response, next) =
     blog.likes = 0;
   }
   
-  const user = await User.findOne({username: decodedToken.username});  
+  const user = await User.findById(request.user.id);  
   if (user) {
     blog.user = user.id;
     const savedBlog = await blog.save();
@@ -63,27 +52,14 @@ blogRouter.put("/:id", async (request, response) => {
   response.status(200).json(updatedBlog);
 });
 
-blogRouter.delete("/:id", middleware.extractToken, async (request, response, next) => {
-  let decodedToken;
-
-  try {
-    decodedToken = jwt.verify(request.token, process.env.JWT_SECRET);
-    console.log("Decoded", decodedToken)
-    if (!decodedToken.id) {
-      return response.status(401).json({error: "token invalid"});
-    }
-  } catch (error) {
-    console.log(error)
-    return next(error)
-  }
-
+blogRouter.delete("/:id", middleware.extractUser, async (request, response, next) => {
   const id = request.params.id;
   const blog = await Blog.findById(id);
   if (!blog) {
     return response.sendStatus(204);
   }
 
-  if (blog.user.toString() !== decodedToken.id) {
+  if (blog.user.toString() !== request.user.id) {
     return response.status(403).json({error: "user has no permissions to perform this action"})
   }
 
