@@ -41,6 +41,7 @@ blogRouter.post("/", middleware.extractUser,  async (request, response, next) =>
 blogRouter.put("/:id", async (request, response) => {
   const id = request.params.id;
   const likes = Number(request.body.likes);
+  console.log("Likes", likes);
   const updatedBlog = await Blog.findByIdAndUpdate(
     id,
     {
